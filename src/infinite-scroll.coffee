@@ -161,7 +161,7 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$interval', 'THROTTLE
     changeContainer windowElement
 
     if scope.infiniteScrollListenForEvent
-      unregisterEventListener = $rootScope.$on scope.infiniteScrollListenForEvent, handler
+      unregisterEventListener = $rootScope.$on scope.infiniteScrollListenForEvent, -> load()
 
     handleInfiniteScrollContainer = (newContainer) ->
       # TODO: For some reason newContainer is sometimes null instead
@@ -197,9 +197,14 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$interval', 'THROTTLE
     # directive first loads, before any actual scroll.
     if attrs.infiniteScrollImmediateCheck?
       immediateCheck = scope.$eval(attrs.infiniteScrollImmediateCheck)
+      
+    load = ->
+      stop = -> $interval.cancel(l)
+      l = $interval(->
+          h = handler()
+          stop() if h==false
+          return h;
+        )
 
-    $interval (->
-      if immediateCheck
-        handler()
-    ), 0, 1
+    if immediateCheck then load() else false
 ]

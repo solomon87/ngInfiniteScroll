@@ -1,4 +1,4 @@
-/* ng-infinite-scroll - v1.2.0 - 2015-02-14 */
+/* ng-infinite-scroll - v1.2.0 - 2015-10-19 */
 var mod;
 
 mod = angular.module('infinite-scroll', []);
@@ -17,7 +17,7 @@ mod.directive('infiniteScroll', [
         infiniteScrollListenForEvent: '@'
       },
       link: function(scope, elem, attrs) {
-        var changeContainer, checkWhenEnabled, container, handleInfiniteScrollContainer, handleInfiniteScrollDisabled, handleInfiniteScrollDistance, handleInfiniteScrollUseDocumentBottom, handler, height, immediateCheck, offsetTop, pageYOffset, scrollDistance, scrollEnabled, throttle, unregisterEventListener, useDocumentBottom, windowElement;
+        var changeContainer, checkWhenEnabled, container, handleInfiniteScrollContainer, handleInfiniteScrollDisabled, handleInfiniteScrollDistance, handleInfiniteScrollUseDocumentBottom, handler, height, immediateCheck, load, offsetTop, pageYOffset, scrollDistance, scrollEnabled, throttle, unregisterEventListener, useDocumentBottom, windowElement;
         windowElement = angular.element($window);
         scrollDistance = null;
         scrollEnabled = null;
@@ -148,7 +148,9 @@ mod.directive('infiniteScroll', [
         };
         changeContainer(windowElement);
         if (scope.infiniteScrollListenForEvent) {
-          unregisterEventListener = $rootScope.$on(scope.infiniteScrollListenForEvent, handler);
+          unregisterEventListener = $rootScope.$on(scope.infiniteScrollListenForEvent, function() {
+            return load();
+          });
         }
         handleInfiniteScrollContainer = function(newContainer) {
           if ((newContainer == null) || newContainer.length === 0) {
@@ -175,11 +177,25 @@ mod.directive('infiniteScroll', [
         if (attrs.infiniteScrollImmediateCheck != null) {
           immediateCheck = scope.$eval(attrs.infiniteScrollImmediateCheck);
         }
-        return $interval((function() {
-          if (immediateCheck) {
-            return handler();
-          }
-        }), 0, 1);
+        load = function() {
+          var l, stop;
+          stop = function() {
+            return $interval.cancel(l);
+          };
+          return l = $interval(function() {
+            var h;
+            h = handler();
+            if (h === false) {
+              stop();
+            }
+            return h;
+          });
+        };
+        if (immediateCheck) {
+          return load();
+        } else {
+          return false;
+        }
       }
     };
   }
