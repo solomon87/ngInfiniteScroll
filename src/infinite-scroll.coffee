@@ -197,14 +197,14 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$interval', 'THROTTLE
     # directive first loads, before any actual scroll.
     if attrs.infiniteScrollImmediateCheck?
       immediateCheck = scope.$eval(attrs.infiniteScrollImmediateCheck)
-      
+    
     load = ->
       stop = -> $interval.cancel(l)
       l = $interval(->
           h = handler()
-          stop() if h==false
+          stop() if h is false
           return h;
-        )
+        , 1, 100) # Run a max of 100 times to prevent memory leaks
 
     if immediateCheck then load() else false
 ]
